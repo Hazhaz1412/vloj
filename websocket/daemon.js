@@ -29,14 +29,14 @@ messages.post = function (channel, message) {
         id: ++message_id,
         channel: channel,
         message: message
-    };
+    }; 
     this.push(message);
     if (this.length > max_queue)
         this.shift();
-    followers.each(function (client) {
+    followers.each(function (client) { 
         client.got_message(message);
     });
-    pollers.each(function (request) {
+    pollers.each(function (request) { 
         request.got_message(message);
     });
     return message.id;

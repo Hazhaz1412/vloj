@@ -46,6 +46,10 @@ from judge.utils.subscription import Subscription
 from judge.utils.unicode import utf8text
 from judge.utils.views import DiggPaginatorMixin, QueryStringSortMixin, TitleMixin, add_file_response, generic_message
 from .contests import ContestRanking
+from django.db.models import Count
+from django.db.models.functions import TruncDate
+from datetime import timedelta
+
 
 __all__ = ['UserPage', 'UserAboutPage', 'UserProblemsPage', 'UserDownloadData', 'UserPrepareData',
            'users', 'edit_profile']
@@ -158,7 +162,6 @@ class CustomPasswordChangeView(PasswordChangeView):
 
 EPOCH = datetime(1970, 1, 1, tzinfo=timezone.utc)
 
-
 class UserAboutPage(UserPage):
     template_name = 'user/user-about.html'
 
@@ -177,25 +180,27 @@ class UserAboutPage(UserPage):
             'class': rating_class(rating.rating),
             'height': '%.3fem' % rating_progress(rating.rating),
         } for rating in ratings]))
-
+ 
         submissions = (
             self.object.submission_set
             .annotate(date_only=TruncDate('date'))
-            .values('date_only').annotate(cnt=Count('id'))
+            .values('date_only')  
+            .annotate(cnt=Count('id'))   
         )
-
+ 
         context['submission_data'] = mark_safe(json.dumps({
-            date_counts['date_only'].isoformat(): date_counts['cnt'] for date_counts in submissions
+            date_counts['date_only'].isoformat() if date_counts['date_only'] is not None else None: date_counts['cnt'] 
+            for date_counts in submissions
         }))
+ 
         context['submission_metadata'] = mark_safe(json.dumps({
             'min_year': (
                 self.object.submission_set
-                .annotate(year_only=ExtractYear('date'))
-                .aggregate(min_year=Min('year_only'))['min_year']
+                .annotate(year_only=ExtractYear('date'))   
+                .aggregate(min_year=Min('year_only'))['min_year']  
             ),
         }))
         return context
-
 
 class UserProblemsPage(UserPage):
     template_name = 'user/user-problems.html'
