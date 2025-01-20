@@ -1,11 +1,14 @@
 .idea
 .vscode
 .sass-cache
+.env
 *.sqlite3
 *.py[co]
 *.mo
 *~
 *.swp
+vloj_venv
+Session.vim
 dmoj/local_settings.py
 resources/ace-dmoj.css
 resources/dark
@@ -15,3 +18,4 @@ resources/select2-dmoj.css
 resources/style.css
 resources/vars.scss
 sass_processed
+db/mysql
