@@ -1,0 +1,22 @@
+name: vloj
+
+services:
+  mariadb:
+    build: ./db
+    ports:
+      - 3306:3306
+    environment:
+      - MARIADB_ALLOW_EMPTY_ROOT_PASSWORD=1
+      - MARIADB_USER=dmoj
+      - MARIADB_PASSWORD=${MARIADB_PASSWORD}
+    volumes:
+      - ./db/mysql:/var/lib/mysql
+  redis:
+    image: redis:7.4.2-alpine
+    ports:
+      - 6379:6379
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
