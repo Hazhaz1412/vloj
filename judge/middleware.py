@@ -12,6 +12,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import Resolver404, resolve, reverse
 from django.utils.encoding import force_bytes
 from requests.exceptions import HTTPError
+from django.utils.deprecation import MiddlewareMixin
 
 from judge.models import MiscConfig
 
@@ -19,8 +20,11 @@ try:
     import uwsgi
 except ImportError:
     uwsgi = None
-
-
+class MiscConfigMiddleware(MiddlewareMixin):
+    def process_request(self, request):
+        domain = get_current_site(request).domain
+        language_code = getattr(request, 'LANGUAGE_CODE', 'en')  # Sử dụng 'en' nếu LANGUAGE_CODE không tồn tại
+        request.misc_config = MiscConfigDict(language=language_code, domain=domain)
 class ShortCircuitMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response

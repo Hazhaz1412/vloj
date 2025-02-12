@@ -180,11 +180,13 @@ class CustomAuthenticationForm(AuthenticationForm):
         self.has_google_auth = self._has_social_auth('GOOGLE_OAUTH2')
         self.has_facebook_auth = self._has_social_auth('FACEBOOK')
         self.has_github_auth = self._has_social_auth('GITHUB_SECURE')
+        self.has_microsoft_auth = self._has_social_auth('MICROSOFT_OAUTH2')
 
     def _has_social_auth(self, key):
-        return (getattr(settings, 'SOCIAL_AUTH_%s_KEY' % key, None) and
-                getattr(settings, 'SOCIAL_AUTH_%s_SECRET' % key, None))
-
+        return bool(
+            getattr(settings, f'SOCIAL_AUTH_{key}_KEY', None) and
+            getattr(settings, f'SOCIAL_AUTH_{key}_SECRET', None)
+        )
 
 class NoAutoCompleteCharField(forms.CharField):
     def widget_attrs(self, widget):

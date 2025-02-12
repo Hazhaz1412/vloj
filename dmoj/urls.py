@@ -26,6 +26,7 @@ from martor.views import markdown_search_user
 admin.autodiscover()
 
 register_patterns = [
+    path("auth/", include("social_django.urls", namespace="social")),
     path('activate/complete/',
          TitledTemplateView.as_view(template_name='registration/activation_complete.html',
                                     title=_('Activation Successful!')),
