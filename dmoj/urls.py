@@ -22,6 +22,7 @@ from judge.views.select2 import AssigneeSelect2View, ClassSelect2View, CommentSe
     UserSearchSelect2View, UserSelect2View
 from judge.views.widgets import martor_image_uploader
 from martor.views import markdown_search_user
+from . import views
 
 admin.autodiscover()
 
@@ -43,6 +44,8 @@ register_patterns = [
                                     title=_('Registration Not Allowed')),
          name='registration_disallowed'),
     path('login/', user.CustomLoginView.as_view(), name='auth_login'),
+    path('login/microsoft/', views.microsoft_login, name='microsoft_login'),
+    path('login/microsoft/callback/', views.microsoft_callback, name='microsoft_callback'),
     path('logout/', user.UserLogoutView.as_view(), name='auth_logout'),
     path('password/change/', user.CustomPasswordChangeView.as_view(), name='password_change'),
     path('password/change/done/', auth_views.PasswordChangeDoneView.as_view(
@@ -366,6 +369,8 @@ urlpatterns = [
         path('failure', tasks.demo_failure),
         path('progress', tasks.demo_progress),
     ])),
+    path('login/microsoft/', views.microsoft_login, name='microsoft_login'),
+    path('login/microsoft/callback/', views.microsoft_callback, name='microsoft_callback'),
 ]
 
 favicon_paths = ['apple-touch-icon-180x180.png', 'apple-touch-icon-114x114.png', 'android-chrome-72x72.png',

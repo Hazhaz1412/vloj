@@ -55,7 +55,7 @@
         </form>
         <a href="{{ url('password_reset') }}">{{ _('Forgot your password?') }}</a>
 
-        {% if form.has_google_auth or form.has_facebook_auth or form.has_github_auth %}
+        {% if form.has_google_auth or form.has_facebook_auth or form.has_github_auth or form.has_microsoft_auth %}
             <h4>{{ _('Or log in with...') }}</h4>
             <div>
                 {% if form.has_google_auth %}
@@ -67,6 +67,11 @@
                     <a href="{{ url('social:begin', "facebook") }}?next={{ next }}" class="social facebook-icon">
                         <i class="fa fa-facebook-square"></i>
                     </a>
+                {% endif %}
+                {% if form.has_microsoft_auth %}
+                  <a href="{{ url('social:begin', "microsoft") }}?next={{ next }}" class="social microsoft-icon">
+                    <i class="fa fa-microsoft-square"></i>
+                  </a>
                 {% endif %}
                 {% if form.has_github_auth %}
                     <a href="{{ url('social:begin', "github-secure") }}?next={{ next }}" class="social github-icon">
