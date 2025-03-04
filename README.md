@@ -15,7 +15,7 @@
   </a>
 </p>
 
-A modern open-source online judge and contest platform system. It has been used to host thousands of competitions, including several national olympiads.
+As a fork of DMOJ, VLOJ is a modern open-source online judge and contest platform system.
 
 See it live at [vloj.vlu.edu.vn](https://vloj.vlu.edu.vn/)!
 
