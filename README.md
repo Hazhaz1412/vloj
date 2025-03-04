@@ -10,7 +10,7 @@
   <a href="LICENSE.md">
     <img alt="License" src="https://img.shields.io/github/license/DMOJ/online-judge"/>
   </a>
-  <a href="https://dmoj.ca/about/discord/">
+  <a href="https://discord.gg/8NjNA5n8">
     <img src="https://img.shields.io/discord/677340492651954177?color=%237289DA&label=Discord"/>
   </a>
 </p>
