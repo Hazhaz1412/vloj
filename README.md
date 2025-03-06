@@ -11,7 +11,7 @@
     <img alt="License" src="https://img.shields.io/github/license/DMOJ/online-judge"/>
   </a>
   <a href="https://discord.gg/8NjNA5n8">
-    
+    <img src="https://img.shields.io/discord/1346541660661616772?color=%237289DA&label=Discord"/>
   </a>
 </p>
 
