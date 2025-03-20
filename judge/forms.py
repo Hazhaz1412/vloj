@@ -64,10 +64,10 @@ class ProfileForm(ModelForm):
 
         widgets['about'] = MartorWidget(attrs={'data-markdownfy-url': reverse_lazy('profile_preview')})
 
-    def clean_about(self):
-        if 'about' in self.changed_data and not self.instance.has_any_solves:
-            raise ValidationError(_('You must solve at least one problem before you can update your profile.'))
-        return self.cleaned_data['about']
+    # def clean_about(self):
+    #     if 'about' in self.changed_data and not self.instance.has_any_solves:
+    #         raise ValidationError(_('You must solve at least one problem before you can update your profile.'))
+    #     return self.cleaned_data['about']
 
     def clean(self):
         organizations = self.cleaned_data.get('organizations') or []
@@ -180,7 +180,7 @@ class CustomAuthenticationForm(AuthenticationForm):
         self.has_google_auth = self._has_social_auth('GOOGLE_OAUTH2')
         self.has_facebook_auth = self._has_social_auth('FACEBOOK')
         self.has_github_auth = self._has_social_auth('GITHUB_SECURE')
-        self.has_microsoft_auth = self._has_social_auth('MICROSOFT_OAUTH2')
+        self.has_microsoft_auth = self._has_social_auth('AZUREAD_OAUTH2')
 
     def _has_social_auth(self, key):
         return bool(

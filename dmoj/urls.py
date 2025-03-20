@@ -8,7 +8,9 @@ from django.urls import include, path, re_path, reverse
 from django.utils.functional import lazy
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import RedirectView
-
+from django.conf import settings
+from django.conf.urls.static import static
+from django.urls import path, include
 from judge.feed import AtomBlogFeed, AtomCommentFeed, AtomProblemFeed, BlogFeed, CommentFeed, ProblemFeed
 from judge.sitemap import sitemaps
 from judge.views import TitledTemplateView, api, blog, comment, contests, language, license, mailgun, organization, \
@@ -22,6 +24,14 @@ from judge.views.select2 import AssigneeSelect2View, ClassSelect2View, CommentSe
     UserSearchSelect2View, UserSelect2View
 from judge.views.widgets import martor_image_uploader
 from martor.views import markdown_search_user
+from . import views
+from django.conf.urls.static import static as static_serve
+from django.templatetags.static import static as static_url
+from django.urls import include, path, re_path, reverse
+from django.utils.functional import lazy
+from django.views.generic import RedirectView
+from judge.views.checker_views import refresh_checkers, proxy_delete_checker, proxy_upload_checker
+
 
 admin.autodiscover()
 
@@ -99,10 +109,12 @@ urlpatterns = [
     path('i18n/', include('django.conf.urls.i18n')),
     path('accounts/', include(register_patterns)),
     path('', include('social_django.urls')),
-
+    path('about/', views.about, name='about'),
     path('problems/', problem.ProblemList.as_view(), name='problem_list'),
     path('problems/random/', problem.RandomProblem.as_view(), name='problem_random'),
-
+    path('widgets/refresh_checkers', refresh_checkers, name='refresh_checkers'),
+    path('widgets/delete_checker/<str:filename>', proxy_delete_checker, name='delete_checker'),
+    path('widgets/upload_checker', proxy_upload_checker, name='upload_checker'),
     path('problem/<str:problem>', include([
         path('', problem.ProblemDetail.as_view(), name='problem_detail'),
         path('/editorial', problem.ProblemSolution.as_view(), name='problem_editorial'),
@@ -369,6 +381,10 @@ urlpatterns = [
     ])),
 ]
 
+if settings.DEBUG:
+    urlpatterns += static_serve(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+    
 favicon_paths = ['apple-touch-icon-180x180.png', 'apple-touch-icon-114x114.png', 'android-chrome-72x72.png',
                  'apple-touch-icon-57x57.png', 'apple-touch-icon-72x72.png', 'apple-touch-icon.png', 'mstile-70x70.png',
                  'android-chrome-36x36.png', 'apple-touch-icon-precomposed.png', 'apple-touch-icon-76x76.png',
@@ -378,8 +394,8 @@ favicon_paths = ['apple-touch-icon-180x180.png', 'apple-touch-icon-114x114.png',
                  'favicon-32x32.png', 'favicon-16x16.png', 'android-chrome-192x192.png', 'android-chrome-48x48.png',
                  'mstile-310x150.png', 'apple-touch-icon-144x144.png', 'browserconfig.xml', 'manifest.json',
                  'apple-touch-icon-120x120.png', 'mstile-310x310.png']
+static_lazy = lazy(static_url, str)
 
-static_lazy = lazy(static, str)
 for favicon in favicon_paths:
     urlpatterns.append(path(favicon, RedirectView.as_view(
         url=static_lazy('icons/' + favicon),

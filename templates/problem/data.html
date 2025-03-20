@@ -34,6 +34,17 @@
                         }
                     });
                 });
+
+                // Add this code to initialize Select2 for the checker dropdown
+                $tr.find('select[id$=checker]').select2({
+                    theme: '{{ DMOJ_SELECT2_THEME }}',
+                    allowClear: true,
+                    placeholder: '{{ _("Search for a checker...") }}',
+                    width: '100%'
+                });
+
+                // Ensure this is after the Select2 initialization
+                checker_precision($tr.find('select[id$=checker]'));
             });
 
             var order = 0;
@@ -248,6 +259,232 @@
                 }
                 $this.prop('checked', filled).trigger('change');
             });
+
+            // Also initialize Select2 for the main problem checker field
+            $('#id_problem-data-checker').select2({
+                theme: '{{ DMOJ_SELECT2_THEME }}',
+                allowClear: true,
+                placeholder: '{{ _("Search for a checker...") }}',
+                width: '100%'
+            });
+
+            // Checker management
+            var $modal = $('#checker-management-modal');
+            var $checkerList = $('#checker-list-table tbody');
+            var $uploadStatus = $('#upload-status');
+            var $checkerSearch = $('#checker-search');
+            
+            // Open modal
+            $('#manage-checkers-btn').click(function() {
+                $modal.show();
+                loadCheckers();
+            });
+            
+            // Close modal
+            $('#checker-modal-close').click(function() {
+                $modal.hide();
+            });
+            
+            // Close modal when clicking outside
+            $modal.click(function(e) {
+                if (e.target === this) {
+                    $modal.hide();
+                }
+            });
+            
+            // Load checkers from API
+            function loadCheckers() {
+                $checkerList.empty();
+                $.ajax({
+                    url: '/widgets/refresh_checkers',  // Sử dụng endpoint này thay vì gọi trực tiếp API Flask
+                    type: 'GET',
+                    cache: false,
+                    success: function(data) {
+                        if (data.success && data.checkers && data.checkers.length > 0) {
+                            displayCheckers(data.checkers);
+                        } else {
+                            $checkerList.html('<tr><td colspan="2">{{ _("No checkers found") }}</td></tr>');
+                        }
+                    },
+                    error: function() {
+                        $checkerList.html('<tr><td colspan="2">{{ _("Error loading checkers") }}</td></tr>');
+                    }
+                });
+            }
+            
+            // Change the displayCheckers function
+            function displayCheckers(checkers) {
+                var filterText = $checkerSearch.val().toLowerCase();
+                var html = '';
+                var is_superuser = {% if is_superuser %}true{% else %}false{% endif %};  // Pass from Django context
+                
+                checkers.forEach(function(checker) {
+                    var checkerName = checker.replace('.py', '');
+                    
+                    // Apply filter if search text exists
+                    if (filterText && checkerName.toLowerCase().indexOf(filterText) === -1) {
+                        return;
+                    }
+                    
+                    html += '<tr data-checker="' + checker + '">' +
+                           '<td>' + checkerName + '</td>' +
+                           '<td>';
+                           
+                    // Only show delete button for superusers
+                    if (is_superuser) {
+                        html += '<button class="button delete-checker" data-checker="' + checker + '">' +
+                               '<i class="fa fa-trash"></i> {{ _("Delete") }}</button>';
+                    }
+                    
+                    html += '</td></tr>';
+                });
+                
+                if (html === '') {
+                    html = '<tr><td colspan="2">{{ _("No matching checkers found") }}</td></tr>';
+                }
+                
+                $checkerList.html(html);
+                
+                // Only attach delete event handler if user is superuser
+                if (is_superuser) {
+                    $('.delete-checker').click(function() {
+                        var checker = $(this).data('checker');
+                        if (confirm('{{ _("Are you sure you want to delete this checker?") }}')) {
+                            deleteChecker(checker);
+                        }
+                    });
+                }
+            }
+            
+            // Handle checker search/filter
+            $checkerSearch.on('input', function() {
+                loadCheckers();
+            });
+            
+            // Handle checker upload
+            $('#checker-upload-form').submit(function(e) {
+                e.preventDefault();
+                
+                var formData = new FormData();
+                var fileInput = document.getElementById('checker-file');
+                
+                if (fileInput.files.length === 0) {
+                    showUploadStatus('{{ _("Please select a file") }}', 'error');
+                    return;
+                }
+                
+                formData.append('file', fileInput.files[0]);
+                
+                $.ajax({
+                    url: '/widgets/upload_checker',  // Sử dụng endpoint Django thay vì gọi trực tiếp
+                    type: 'POST',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: function(data) {
+                        showUploadStatus('{{ _("Checker uploaded successfully") }}', 'success');
+                        fileInput.value = '';
+                        
+                        // Chờ Flask server khởi động lại nếu cần (1.5 giây)
+                        setTimeout(function() {
+                            loadCheckers();  // Cập nhật danh sách hiển thị
+                            
+                            // Cập nhật các dropdown sau khi Flask khởi động lại
+                            setTimeout(function() {
+                                $.ajax({
+                                    url: '/widgets/refresh_checkers',
+                                    type: 'GET',
+                                    cache: false,
+                                    success: function(data) {
+                                        if (data.success) {
+                                            // Update all checker select2 dropdowns
+                                            // ... your existing code ...
+                                        }
+                                    }
+                                });
+                            }, 500);
+                        }, 1500);
+                    },
+                    error: function(xhr) {
+                        var message = xhr.responseJSON ? xhr.responseJSON.error : '{{ _("Upload failed") }}';
+                        showUploadStatus(message, 'error');
+                    }
+                });
+            });
+            
+            // Delete a checker
+            function deleteChecker(checker) {
+                $.ajax({
+                    url: '/widgets/delete_checker/' + checker,  // Sử dụng endpoint Django thay vì gọi trực tiếp
+                    type: 'DELETE',
+                    headers: {
+                        'Authorization': 'Bearer {{ user_auth_token }}'  // You'd need to generate and pass this token
+                    },
+                    success: function() {
+                        showUploadStatus('{{ _("Checker deleted successfully") }}', 'success');
+                        loadCheckers();
+                        
+                        // Also update checker dropdowns
+                        $.ajax({
+                            url: '/widgets/refresh_checkers',
+                            type: 'GET',
+                            cache: false,
+                            success: function(data) {
+                                if (data.success) {
+                                    // Update all checker select2 dropdowns
+                                    $('select[id$=checker]').each(function() {
+                                        var currentVal = $(this).val();
+                                        var $select = $(this);
+                                        
+                                        // Check if the value still exists in new data
+                                        var valueStillExists = false;
+                                        if (currentVal) {
+                                            for (var i = 0; i < data.checkers.length; i++) {
+                                                if (data.checkers[i].id === currentVal) {
+                                                    valueStillExists = true;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        
+                                        // Destroy and recreate select2
+                                        $select.select2('destroy');
+                                        $select.empty();
+                                        
+                                        $select.select2({
+                                            data: data.checkers,
+                                            theme: '{{ DMOJ_SELECT2_THEME }}',
+                                            allowClear: true,
+                                            placeholder: '{{ _("Search for a checker...") }}'
+                                        });
+                                        
+                                        // Only set value if it still exists
+                                        if (valueStillExists) {
+                                            $select.val(currentVal).trigger('change');
+                                        }
+                                    });
+                                }
+                            }
+                        });
+                    },
+                    error: function(xhr) {
+                        var message = xhr.responseJSON ? xhr.responseJSON.error : '{{ _("Delete failed") }}';
+                        showUploadStatus(message, 'error');
+                    }
+                });
+            }
+            
+            // Show status message
+            function showUploadStatus(message, type) {
+                $uploadStatus.removeClass('status-success status-error')
+                             .addClass('status-' + type)
+                             .text(message)
+                             .show();
+                
+                setTimeout(function() {
+                    $uploadStatus.fadeOut();
+                }, 3000);
+            }
         });
     </script>
 {% endblock %}
@@ -336,6 +573,61 @@
             padding-bottom: 1em;
             background: #e99;
         }
+
+        /* Checker management modal styles */
+        #checker-management-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(180, 180, 180, 0.5);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .checker-modal-content {
+            background-color: rgba(54, 54, 54);
+            padding: 20px;
+            border-radius: 5px;
+            width: 80%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .checker-upload-section, .checker-list-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        #checker-list-table {
+            width: 100%;
+        }
+        
+        .checker-actions {
+            text-align: right;
+            margin-top: 20px;
+        }
+        
+        #upload-status {
+            margin-top: 10px;
+            padding: 5px;
+        }
+        
+        .status-success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        
+        .status-error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
     </style>
 {% endblock %}
 
@@ -379,6 +671,10 @@
                 <input type="checkbox" data-suffix="batch_dependencies">
                 {{ _('Batch dependencies') }}
             </label>
+            <!-- Add a button to manage checkers -->
+            <button type="button" class="button" id="manage-checkers-btn" style="margin-left: 20px;">
+                <i class="fa fa-cog"></i> {{ _('Manage Checkers') }}
+            </button>
         </div>
         <table id="case-table" class="table">
             <thead>
@@ -452,4 +748,42 @@
     </form>
     <div style="display: none" class="generator-args-editor"><textarea></textarea><a class="button">{{ _('Save') }}</a></div>
     <div style="display: none" class="batch-dependencies-editor"><textarea></textarea><a class="button">{{ _('Save') }}</a></div>
+
+    <!-- Add checker management modal -->
+    <div id="checker-management-modal" style="display: none;">
+        <div class="checker-modal-content">
+            <h3>{{ _('Checker Management') }}</h3>
+            
+            <div class="checker-upload-section">
+                <h4>{{ _('Upload New Checker') }}</h4>
+                <form id="checker-upload-form" enctype="multipart/form-data">
+                    <input type="file" name="checker_file" id="checker-file" accept=".py">
+                    <button type="submit" class="button">{{ _('Upload') }}</button>
+                </form>
+                <div id="upload-status"></div>
+            </div>
+            
+            <div class="checker-list-section">
+                <h4>{{ _('Available Checkers') }}</h4>
+                <div class="checker-filter">
+                    <input type="text" id="checker-search" placeholder="{{ _('Search checkers...') }}" style="width: 100%; margin-bottom: 10px;">
+                </div>
+                <table class="table" id="checker-list-table">
+                    <thead>
+                        <tr>
+                            <th>{{ _('Checker Name') }}</th>
+                            <th>{{ _('Actions') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="checker-actions">
+                <button class="button" id="checker-modal-close">{{ _('Close') }}</button>
+            </div>
+        </div>
+    </div>
 {% endblock %}

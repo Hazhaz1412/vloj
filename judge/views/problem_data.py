@@ -197,6 +197,10 @@ class ProblemDataView(TitleMixin, ProblemManagerMixin):
 
         context['cases_formset'] = self.get_case_formset(valid_files)
         context['all_case_forms'] = chain(context['cases_formset'], [context['cases_formset'].empty_form])
+        
+        # Add this line to provide superuser status to the template
+        context['is_superuser'] = self.request.user.is_superuser
+        
         return context
 
     def post(self, request, *args, **kwargs):

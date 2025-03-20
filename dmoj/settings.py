@@ -28,10 +28,10 @@ SECRET_KEY = '5*9f5q57mqmlz2#f$x1h76&jxy#yortjl1v+l*6hd18$d*yx#0'
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
+SITE_URL = 'https://b2a9-2405-4803-db3e-b1e0-4c1a-bc46-76da-6bed.ngrok-free.app/'
 SITE_ID = 1
-SITE_NAME = 'DMOJ'
-SITE_LONG_NAME = 'DMOJ: Modern Online Judge'
+SITE_NAME = 'VLOJ'
+SITE_LONG_NAME = 'VLOJ: Modern Online Judge'
 SITE_ADMIN_EMAIL = ''
 
 DMOJ_REQUIRE_STAFF_2FA = True
@@ -156,7 +156,7 @@ NOFOLLOW_EXCLUDED = set()
 TIMEZONE_MAP = 'https://static.dmoj.ca/assets/earth.jpg'
 
 TERMS_OF_SERVICE_URL = None
-DEFAULT_USER_LANGUAGE = 'PY3' 
+DEFAULT_USER_LANGUAGE = 'CPP20' 
 INLINE_JQUERY = True
 INLINE_FONTAWESOME = True
 JQUERY_JS = '//ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js'
@@ -502,6 +502,8 @@ MARTOR_SEARCH_USERS_URL = '/widgets/martor/search-user'
 MARTOR_UPLOAD_URL = '/widgets/martor/upload-image'
 MARTOR_MARKDOWN_BASE_MENTION_URL = '/user/'
 
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media') 
+MEDIA_URL = '/media/' 
 # Directory under MEDIA_ROOT to use to store image uploaded through martor.
 MARTOR_UPLOAD_MEDIA_DIR = 'martor'
 MARTOR_UPLOAD_SAFE_EXTS = {'.jpg', '.png', '.gif'}
@@ -517,9 +519,13 @@ DATABASES = {
 }
 
 ENABLE_FTS = False
+JUDGE_CONNECTIONS = {
+    'judge': 'W5Utb4qZiolfTIFs+lpi6TyB7UaTN5Tmb/Z1eivSZrxazy2wyCB0d6e8oBBFRSAIFbrhQ6+6E0sJojZZtmOjVBU8zhNMxl4PGKZt',
+    'judge2': '91FaWXhIWA5gzL4vpz5uU1uGQl68SNpEv2vpltSFRSIBI/Rm2b3ZU8w6YCU9oDSSQD44Q7CnOvTe4p7ZI3PlpfA+HE1KkaJlAwsK',
+}
 
 # Bridged configuration
-BRIDGED_JUDGE_ADDRESS = [('localhost', 9999)]
+BRIDGED_JUDGE_ADDRESS = [('localhost', 9999), ('localhost', 10000)]
 BRIDGED_JUDGE_PROXIES = None
 BRIDGED_DJANGO_ADDRESS = [('localhost', 9998)]
 BRIDGED_DJANGO_CONNECT = None
@@ -537,9 +543,9 @@ EVENT_DAEMON_SUBMISSION_KEY = '6Sdmkx^%pk@GsifDfXcwX*Y7LRF%RGT8vmFpSxFBT$fwS7trc
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
 # Whatever you do, this better be one of the entries in `LANGUAGES`.
-LANGUAGE_CODE = 'en'
+LANGUAGE_CODE = 'vi'
 TIME_ZONE = 'UTC'
-DEFAULT_USER_TIME_ZONE = 'America/Toronto'
+DEFAULT_USER_TIME_ZONE = 'Asia/Ho_Chi_Minh'
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
@@ -568,7 +574,8 @@ LOGOUT_REDIRECT_URL = "/"
 AUTHENTICATION_BACKENDS = (
     'social_core.backends.google.GoogleOAuth2',
     'social_core.backends.facebook.FacebookOAuth2',
-    'social_core.backends.microsoft.MicrosoftOAuth2',
+    'social_core.backends.azuread.AzureADOAuth2',
+    'social_core.backends.azuread_tenant.AzureADTenantOAuth2',
     'judge.social_auth.GitHubSecureEmailOAuth2',
     'django.contrib.auth.backends.ModelBackend',
 )

@@ -3,8 +3,9 @@ from django import forms
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import get_default_password_validators
+from django.contrib.auth import login
 from django.forms import ChoiceField, ModelChoiceField
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.utils.translation import gettext, gettext_lazy as _, ngettext
 from registration.backends.default.views import (ActivationView as OldActivationView,
                                                  RegistrationView as OldRegistrationView)
@@ -16,7 +17,7 @@ from judge.utils.mail import validate_email_domain
 from judge.utils.recaptcha import ReCaptchaField, ReCaptchaWidget
 from judge.utils.subscription import Subscription, newsletter_id
 from judge.widgets import Select2MultipleWidget, Select2Widget
-
+from django.contrib.auth import get_backends
 
 class CustomRegistrationForm(RegistrationForm):
     username = forms.RegexField(regex=r'^\w+$', max_length=30, label=_('Username'),
@@ -81,7 +82,6 @@ class RegistrationView(OldRegistrationView):
         if newsletter_id is not None and cleaned_data['newsletter']:
             Subscription(user=user, newsletter_id=newsletter_id, subscribed=True).save()
         return user
-
     def get_initial(self, *args, **kwargs):
         initial = super(RegistrationView, self).get_initial(*args, **kwargs)
         initial['timezone'] = settings.DEFAULT_USER_TIME_ZONE

@@ -3,6 +3,7 @@ import os
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from .checkers import get_custom_checkers
 
 from judge.utils.problem_data import ProblemDataStorage
 
@@ -19,7 +20,8 @@ def problem_directory_file(data, filename):
     return _problem_directory_file(data.problem.code, filename)
 
 
-CHECKERS = (
+
+STATIC_CHECKERS = (
     ('standard', _('Standard')),
     ('floats', _('Floats')),
     ('floatsabs', _('Floats (absolute)')),
@@ -29,6 +31,7 @@ CHECKERS = (
     ('identical', _('Byte identical')),
     ('linecount', _('Line-by-line')),
 )
+CHECKERS = get_custom_checkers() + list(STATIC_CHECKERS)
 
 
 class ProblemData(models.Model):
@@ -41,7 +44,7 @@ class ProblemData(models.Model):
     output_prefix = models.IntegerField(verbose_name=_('output prefix length'), blank=True, null=True)
     output_limit = models.IntegerField(verbose_name=_('output limit length'), blank=True, null=True)
     feedback = models.TextField(verbose_name=_('init.yml generation feedback'), blank=True)
-    checker = models.CharField(max_length=10, verbose_name=_('checker'), choices=CHECKERS, blank=True)
+    checker = models.CharField(max_length=15, verbose_name=_('checker'), choices=CHECKERS, blank=True)
     unicode = models.BooleanField(verbose_name=_('enable unicode'), null=True, blank=True)
     nobigmath = models.BooleanField(verbose_name=_('disable bigInteger / bigDecimal'), null=True, blank=True)
     checker_args = models.TextField(verbose_name=_('checker arguments'), blank=True,
@@ -91,7 +94,7 @@ class ProblemTestCase(models.Model):
     is_pretest = models.BooleanField(verbose_name=_('case is pretest?'))
     output_prefix = models.IntegerField(verbose_name=_('output prefix length'), blank=True, null=True)
     output_limit = models.IntegerField(verbose_name=_('output limit length'), blank=True, null=True)
-    checker = models.CharField(max_length=10, verbose_name=_('checker'), choices=CHECKERS, blank=True)
+    checker = models.CharField(max_length=15, verbose_name=_('checker'), choices=CHECKERS, blank=True)
     checker_args = models.TextField(verbose_name=_('checker arguments'), blank=True,
                                     help_text=_('checker arguments as a JSON object'))
     batch_dependencies = models.TextField(verbose_name=_('batch dependencies'), blank=True,

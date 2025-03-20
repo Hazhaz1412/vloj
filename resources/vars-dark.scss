@@ -27,14 +27,19 @@ $color_contest_ranking_disqualified: #622;
 
 $color_martor_resize_dragger: #232323;
 
-$color_rating_none: #aaa;
-$color_rating_newbie: #aaa;
-$color_rating_amateur: #00a900;
-$color_rating_expert: cornflowerblue;
-$color_rating_candidate_master: mediumpurple;
-$color_rating_master: #ffb100;
-$color_rating_grandmaster: #e00;
-$color_rating_target: #f55;
+// ...existing code...
+$color_rating_newbie: #999;
+$color_rating_pupil: #2db82d;
+$color_rating_specialist: #5f97ff;
+$color_rating_expert: #00b7c2;
+$color_rating_candidate_master: #fbc02d;
+$color_rating_master: #fa9900;
+$color_rating_international_master: #e95692;
+$color_rating_grandmaster: #ff3030;
+$color_rating_international_grandmaster: #a030ff;
+$color_rating_legendary_grandmaster: #d02090;
+// ...existing code...
+
 
 $color_select2_search_dropdown: $color_primary10;
 

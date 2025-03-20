@@ -19,7 +19,16 @@
         fill: $color;
     }
 }
-
+$color_rating_newbie: #999;
+$color_rating_pupil: #2db82d;
+$color_rating_specialist: #5f97ff;
+$color_rating_expert: #00b7c2;
+$color_rating_candidate_master: #fbc02d;
+$color_rating_master: #fa9900;
+$color_rating_international_master: #e95692;
+$color_rating_grandmaster: #ff3030;
+$color_rating_international_grandmaster: #a030ff;
+$color_rating_legendary_grandmaster: #d02090;
 svg.rate-box {
     width: 1.2em;
 
@@ -32,16 +41,16 @@ svg.rate-box {
         visibility: hidden;
     }
 
-    &.rate-primary0 {
-        @include rate-svg-color($color_primary0);
-    }
-
     &.rate-newbie {
         @include rate-svg-color($color_rating_newbie);
     }
 
-    &.rate-amateur {
-        @include rate-svg-color($color_rating_amateur);
+    &.rate-pupil {
+        @include rate-svg-color($color_rating_pupil);
+    }
+
+    &.rate-specialist {
+        @include rate-svg-color($color_rating_specialist);
     }
 
     &.rate-expert {
@@ -56,10 +65,23 @@ svg.rate-box {
         @include rate-svg-color($color_rating_master);
     }
 
-    &.rate-grandmaster, &.rate-target {
+    &.rate-international-master {
+        @include rate-svg-color($color_rating_international_master);
+    }
+
+    &.rate-grandmaster {
         @include rate-svg-color($color_rating_grandmaster);
     }
 
+    &.rate-international-grandmaster {
+        @include rate-svg-color($color_rating_international_grandmaster);
+    }
+
+    &.rate-legendary-grandmaster {
+        @include rate-svg-color($color_rating_legendary_grandmaster);
+    }
+
+    // Giữ lại nếu hệ thống vẫn dùng .rate-target
     &.rate-target {
         circle:last-child {
             stroke: none;
@@ -67,7 +89,6 @@ svg.rate-box {
         }
     }
 }
-
 .rating {
     font-weight: bold;
 
@@ -87,6 +108,16 @@ svg.rate-box {
 
 .rate-amateur, .rate-amateur a {
     color: $color_rating_amateur;
+}
+
+.rate-pupil,
+.rate-pupil a {
+    color: $color_rating_pupil;
+}
+
+.rate-specialist,
+.rate-specialist a {
+    color: $color_rating_specialist;
 }
 
 .rate-expert, .rate-expert a {

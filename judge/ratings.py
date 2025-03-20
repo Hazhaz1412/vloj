@@ -1,3 +1,6 @@
+#### python
+# filepath: c:\Users\Huan\Desktop\VLOJ\vloj\judge\ratings.py
+
 from bisect import bisect
 from math import pi, sqrt, tanh
 from operator import attrgetter, itemgetter
@@ -6,20 +9,17 @@ from django.db import transaction
 from django.db.models import Count, OuterRef, Subquery
 from django.db.models.functions import Coalesce
 from django.utils import timezone
-from django.utils.translation import gettext_lazy
-
 
 BETA2 = 328.33 ** 2
-RATING_INIT = 1200      # Newcomer's rating when applying the rating floor/ceiling
+RATING_INIT = 1200
 MEAN_INIT = 1500.
-VAR_INIT = 350**2 * (BETA2 / 212**2)
+VAR_INIT = 250**2 * (BETA2 / 212**2)
 SD_INIT = sqrt(VAR_INIT)
 VALID_RANGE = MEAN_INIT - 20 * SD_INIT, MEAN_INIT + 20 * SD_INIT
-VAR_PER_CONTEST = 1219.047619 * (BETA2 / 212**2)
+VAR_PER_CONTEST = 1000.047619 * (BETA2 / 212**2)
 VAR_LIM = (sqrt(VAR_PER_CONTEST**2 + 4 * BETA2 * VAR_PER_CONTEST) - VAR_PER_CONTEST) / 2
 SD_LIM = sqrt(VAR_LIM)
 TANH_C = sqrt(3) / pi
-
 
 def tie_ranker(iterable, key=attrgetter('points')):
     rank = 0
@@ -40,10 +40,8 @@ def tie_ranker(iterable, key=attrgetter('points')):
     for _ in buf:
         yield rank + (delta - 1) / 2.0
 
-
 def eval_tanhs(tanh_terms, x):
     return sum((wt / sd) * tanh((x - mu) / (2 * sd)) for mu, sd, wt in tanh_terms)
-
 
 def solve(tanh_terms, y_tg, lin_factor=0, bounds=VALID_RANGE):
     L, R = bounds
@@ -57,7 +55,6 @@ def solve(tanh_terms, y_tg, lin_factor=0, bounds=VALID_RANGE):
             L, Ly = x, y
         else:
             return x
-    # Use linear interpolation to be slightly more accurate.
     if Ly is None:
         Ly = lin_factor * L + eval_tanhs(tanh_terms, L)
     if y_tg <= Ly:
@@ -69,24 +66,20 @@ def solve(tanh_terms, y_tg, lin_factor=0, bounds=VALID_RANGE):
     ratio = (y_tg - Ly) / (Ry - Ly)
     return L * (1 - ratio) + R * ratio
 
-
 def get_var(times_ranked, cache=[VAR_INIT]):
     while times_ranked >= len(cache):
         next_var = 1. / (1. / (cache[-1] + VAR_PER_CONTEST) + 1. / BETA2)
         cache.append(next_var)
     return cache[times_ranked]
 
-
 def recalculate_ratings(ranking, old_mean, times_ranked, historical_p):
     n = len(ranking)
     new_p = [0.] * n
     new_mean = [0.] * n
 
-    # Note: pre-multiply delta by TANH_C to improve efficiency.
     delta = [TANH_C * sqrt(get_var(t) + VAR_PER_CONTEST + BETA2) for t in times_ranked]
     p_tanh_terms = [(m, d, 1) for m, d in zip(old_mean, delta)]
 
-    # Calculate performance at index i.
     def solve_idx(i, bounds=VALID_RANGE):
         r = ranking[i]
         y_tg = 0
@@ -95,10 +88,9 @@ def recalculate_ratings(ranking, old_mean, times_ranked, historical_p):
                 y_tg += 1. / d
             elif s < r:     # s beats r
                 y_tg -= 1. / d
-            # Otherwise, this is a tie that counts as half a win, as per Elo-MMR.
+            # Ties count as half-win in Elo-MMR
         new_p[i] = solve(p_tanh_terms, y_tg, bounds=bounds)
 
-    # Fill all indices between i and j, inclusive. Use the fact that new_p is non-increasing.
     def divconq(i, j):
         if j - i > 1:
             k = (i + j) // 2
@@ -110,12 +102,10 @@ def recalculate_ratings(ranking, old_mean, times_ranked, historical_p):
         new_p = list(old_mean)
         new_mean = list(old_mean)
     else:
-        # Calculate performance.
         solve_idx(0)
         solve_idx(n - 1)
         divconq(0, n - 1)
 
-        # Calculate mean.
         for i, r in enumerate(ranking):
             tanh_terms = []
             w_prev = 1.
@@ -125,7 +115,6 @@ def recalculate_ratings(ranking, old_mean, times_ranked, historical_p):
                 h_var = get_var(times_ranked[i] + 1 - j)
                 k = h_var / (h_var + gamma2)
                 w = w_prev * k**2
-                # Future optimization: If j is around 20, then w < 1e-3 and it is possible to break early.
                 tanh_terms.append((h, sqrt(BETA2) * TANH_C, w))
                 w_prev = w
                 w_sum += w / BETA2
@@ -133,12 +122,28 @@ def recalculate_ratings(ranking, old_mean, times_ranked, historical_p):
             p0 = eval_tanhs(tanh_terms[1:], old_mean[i]) / w0 + old_mean[i]
             new_mean[i] = solve(tanh_terms, w0 * p0, lin_factor=w0)
 
-    # Display a slightly lower rating to incentivize participation.
-    # As times_ranked increases, new_rating converges to new_mean.
-    new_rating = [max(1, round(m - (sqrt(get_var(t + 1)) - SD_LIM))) for m, t in zip(new_mean, times_ranked)]
+    # Hàm bonus tích lũy cho 6 vòng đầu
+    bonus_values = [500,350,250,150,100,50]
+    def cumulative_bonus(k):
+        return sum(bonus_values[:k])
+
+    # Điều chỉnh old_mean cho tài khoản mới (times==0)
+    for i, t in enumerate(times_ranked):
+        if t == 0:
+            old_mean[i] = 1400
+
+    new_rating = []
+    for i, t in enumerate(times_ranked):
+        # base_rating theo công thức hiện có
+        base_rating = round(new_mean[i] - (sqrt(get_var(t + 1)) - SD_LIM))
+        # Nếu số vòng tham gia nhỏ hơn 6 thì dùng bonus tích lũy
+        if t < 6:
+            displayed = max(1, base_rating - 1400 + cumulative_bonus(t + 1))
+        else:
+            displayed = max(1, base_rating)
+        new_rating.append(displayed)
 
     return new_rating, new_mean, new_p
-
 
 def rate_contest(contest):
     from judge.models import Rating, Profile
@@ -146,14 +151,22 @@ def rate_contest(contest):
     rating_subquery = Rating.objects.filter(user=OuterRef('user'))
     rating_sorted = rating_subquery.order_by('-contest__end_time')
     users = contest.users.order_by('is_disqualified', '-score', 'cumtime', 'tiebreaker') \
-        .annotate(submissions=Count('submission'),
-                  last_rating=Coalesce(Subquery(rating_sorted.values('rating')[:1]), RATING_INIT),
-                  last_mean=Coalesce(Subquery(rating_sorted.values('mean')[:1]), MEAN_INIT),
-                  times=Coalesce(Subquery(rating_subquery.order_by().values('user_id')
-                                          .annotate(count=Count('id')).values('count')), 0)) \
+        .annotate(
+            submissions=Count('submission'),
+            last_rating=Coalesce(Subquery(rating_sorted.values('rating')[:1]), RATING_INIT),
+            last_mean=Coalesce(Subquery(rating_sorted.values('mean')[:1]), MEAN_INIT),
+            times=Coalesce(
+                Subquery(
+                    rating_subquery.order_by().values('user_id').annotate(count=Count('id')).values('count')
+                ),
+                0
+            )
+        ) \
         .exclude(user_id__in=contest.rate_exclude.all()) \
-        .filter(virtual=0).values('id', 'user_id', 'score', 'cumtime', 'tiebreaker',
-                                  'last_rating', 'last_mean', 'times')
+        .filter(virtual=0).values(
+            'id', 'user_id', 'score', 'cumtime', 'tiebreaker',
+            'last_mean', 'times'
+        )
     if not contest.rate_all:
         users = users.filter(submissions__gt=0)
     if contest.rating_floor is not None:
@@ -170,8 +183,7 @@ def rate_contest(contest):
     historical_p = [[] for _ in users]
 
     user_id_to_idx = {uid: i for i, uid in enumerate(user_ids)}
-    for h in Rating.objects.filter(user_id__in=user_ids) \
-            .order_by('-contest__end_time') \
+    for h in Rating.objects.filter(user_id__in=user_ids).order_by('-contest__end_time') \
             .values('user_id', 'performance'):
         idx = user_id_to_idx[h['user_id']]
         historical_p[idx].append(h['performance'])
@@ -179,42 +191,44 @@ def rate_contest(contest):
     rating, mean, performance = recalculate_ratings(ranking, old_mean, times_ranked, historical_p)
 
     now = timezone.now()
-    ratings = [Rating(user_id=i, contest=contest, rating=r, mean=m, performance=perf,
-                      last_rated=now, participation_id=pid, rank=z)
-               for i, pid, r, m, perf, z in zip(user_ids, participation_ids, rating, mean, performance, ranking)]
+    ratings = [
+        Rating(
+            user_id=uid, contest=contest, rating=r, mean=m, performance=p,
+            last_rated=now, participation_id=pid, rank=z
+        )
+        for uid, pid, r, m, p, z in zip(user_ids, participation_ids, rating, mean, performance, ranking)
+    ]
     with transaction.atomic():
         Rating.objects.bulk_create(ratings)
-
         Profile.objects.filter(contest_history__contest=contest, contest_history__virtual=0).update(
-            rating=Subquery(Rating.objects.filter(user=OuterRef('id'))
-                            .order_by('-contest__end_time').values('rating')[:1]))
-
+            rating=Subquery(
+                Rating.objects.filter(user=OuterRef('id'))
+                .order_by('-contest__end_time').values('rating')[:1]
+            )
+        )
 
 RATING_LEVELS = [
-    gettext_lazy('Newbie'),
-    gettext_lazy('Amateur'),
-    gettext_lazy('Expert'),
-    gettext_lazy('Candidate Master'),
-    gettext_lazy('Master'),
-    gettext_lazy('Grandmaster'),
-    gettext_lazy('Target'),
+    'Newbie', 'Pupil', 'Specialist', 'Expert', 'Candidate Master',
+    'Master', 'International Master', 'Grandmaster',
+    'International Grandmaster', 'Legendary Grandmaster'
 ]
-RATING_VALUES = [1000, 1300, 1600, 1900, 2400, 3000]
-RATING_CLASS = ['rate-newbie', 'rate-amateur', 'rate-expert', 'rate-candidate-master',
-                'rate-master', 'rate-grandmaster', 'rate-target']
 
+# 9 cột mốc + 10 cấp bậc ở trên để xếp người chơi vào dải tương ứng
+RATING_VALUES = [1200, 1400, 1600, 1900, 2200, 2300, 2400, 2600, 2900]
+RATING_CLASS = [
+    'rate-newbie', 'rate-pupil', 'rate-specialist', 'rate-expert',
+    'rate-candidate-master', 'rate-master', 'rate-international-master',
+    'rate-grandmaster', 'rate-international-grandmaster', 'rate-legendary-grandmaster'
+]
 
 def rating_level(rating):
     return bisect(RATING_VALUES, rating)
 
-
 def rating_name(rating):
     return RATING_LEVELS[rating_level(rating)]
 
-
 def rating_class(rating):
     return RATING_CLASS[rating_level(rating)]
-
 
 def rating_progress(rating):
     level = bisect(RATING_VALUES, rating)
@@ -222,4 +236,4 @@ def rating_progress(rating):
         return 1.0
     prev = 0 if not level else RATING_VALUES[level - 1]
     next = RATING_VALUES[level]
-    return (rating - prev + 0.0) / (next - prev)
+    return (rating - prev) / (next - prev)

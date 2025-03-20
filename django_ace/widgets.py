@@ -8,7 +8,7 @@ from django import forms
 from django.conf import settings
 from django.forms.utils import flatatt
 from django.utils.safestring import mark_safe
-
+from django.utils.translation import gettext_lazy as _  # If it's using the old import style
 
 class AceWidget(forms.Textarea):
     def __init__(self, mode=None, theme=None, wordwrap=False, width='100%', height='300px',

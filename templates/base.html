@@ -1,7 +1,8 @@
+<!-- filepath: /c:/Users/Huan/Desktop/VLOJ/vloj/templates/base.html -->
 <!DOCTYPE html>
 <html lang="{{ LANGUAGE_CODE }}">
 <head>
-    <title>{% block title %}{{ title }} - {{ SITE_LONG_NAME }}{% endblock %}</title>
+    <title>{% block title %}{{ title }} - VLOJ: Van Lang Online Judge{% endblock %}</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     {% if misc_config.meta_keywords %}
         <meta name="keywords" content="{{ misc_config.meta_keywords }}">
@@ -20,7 +21,7 @@
     <link rel="apple-touch-icon" sizes="144x144" href="/apple-touch-icon-144x144.png">
     <link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon-152x152.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180x180.png">
-    <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="/faviconvlu-32x32.png" sizes="32x32">
     <link rel="icon" type="image/png" href="/android-chrome-192x192.png" sizes="192x192">
     <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
     <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
@@ -47,7 +48,7 @@
         {# TODO: once dark mode support is better, enable for all users by deleting the else branch #}
         {% if perms.judge.test_site %}
             {% if PREFERRED_STYLE_CSS is not none %}
-                <link rel="stylesheet" href="{{ static(PREFERRED_STYLE_CSS) }}">
+                <link rel="stylesheet" href="{{ static(style.css) }}">
             {% else %}
                 <link rel="stylesheet" href="{{ static(LIGHT_STYLE_CSS) }}">
                 <link rel="stylesheet" href="{{ static(DARK_STYLE_CSS) }}" media="(prefers-color-scheme: dark)">
@@ -68,6 +69,7 @@
             }
         </style>
     {% endif %}
+    
     {% block media %}{% endblock %}
     {% if not INLINE_JQUERY %}
         <script src="{{ JQUERY_JS }}"></script>
@@ -105,7 +107,7 @@
             $('#contest-info').mousedown(function () {
                 selected = $(this);
                 x_elem = x_pos - selected.offset().left;
-                y_elem = y_pos - (selected.offset().top - $(window).scrollTop());
+                y_elem = x_pos - (selected.offset().top - $(window).scrollTop());
                 return false;
             });
 
@@ -177,6 +179,18 @@
             }
         </style>
     </noscript>
+    <script>
+      (function() {
+          var theme = localStorage.getItem('theme') || 'light';
+          document.documentElement.setAttribute('data-theme', theme);
+          if (theme === 'dark') {
+              var link = document.createElement('link');
+              link.rel = 'stylesheet';
+              link.href = "{{ static(DARK_STYLE_CSS) }}";
+              document.head.appendChild(link);
+          }
+      })();
+    </script>
 </head>
 <body{% if perms.judge.test_site %} data-theme="{{ SITE_THEME_NAME }}"{% endif %}>
 <svg width="0" height="0" style="display: block">
@@ -242,6 +256,7 @@
                 </span>
             {% endif %}
         </span>
+        <!--<button id="theme-toggle" onclick="toggleTheme()" style="margin-left:10px;">Toggle Theme</button>-->
     </div>
     <div id="nav-shadow"></div>
 </nav>
@@ -290,7 +305,7 @@
     <footer>
         <span id="footer-content">
             <br>
-            <a style="color: #808080" href="https://dmoj.ca">{{ _('proudly powered by **DMOJ**')|markdown('default', strip_paragraphs=True) }}</a> |
+            <a style="color: #808080" href="https://dmoj.ca">{{ _('')|markdown('default', strip_paragraphs=True) }}</a> |
             {% if misc_config.footer %}
                 {{ misc_config.footer|safe }} |
             {% endif %}
@@ -308,5 +323,27 @@
         </span>
     </footer>
 </div>
+<script>
+  function toggleTheme() {
+      var current = localStorage.getItem('theme') || 'light';
+      var newTheme = current === 'light' ? 'dark' : 'light';
+      localStorage.setItem('theme', newTheme);
+      // Reload trang để áp dụng CSS mới (hoặc cập nhật DOM tương ứng nếu bạn muốn chuyển đổi mượt mà)
+      location.reload();
+  }
+</script>
 </body>
+<button id="theme-toggle" onclick="toggleTheme()" style="
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    padding: 10px 15px;
+    background-color: #d6bfbf;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+">
+    Theme
+</button>
 </html>

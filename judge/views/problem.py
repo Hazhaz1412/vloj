@@ -22,7 +22,7 @@ from django.utils.functional import cached_property
 from django.utils.html import escape, format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _, gettext_lazy
-from django.views.generic import DetailView, ListView, View
+from django.views.generic import DetailView, ListView, View, TemplateView
 from django.views.generic.detail import SingleObjectMixin
 from reversion import revisions
 
@@ -38,6 +38,8 @@ from judge.utils.problems import contest_attempted_ids, contest_completed_ids, h
 from judge.utils.strings import safe_float_or_none, safe_int_or_none
 from judge.utils.tickets import own_ticket_filter
 from judge.utils.views import QueryStringSortMixin, SingleObjectFormView, TitleMixin, add_file_response, generic_message
+from judge.models.checkers import get_custom_checkers, JUDGE_SERVER_URL
+import requests
 
 recjk = re.compile(r'[\u2E80-\u2E99\u2E9B-\u2EF3\u2F00-\u2FD5\u3005\u3007\u3021-\u3029\u3038-\u303A\u303B\u3400-\u4DB5'
                    r'\u4E00-\u9FC3\uF900-\uFA2D\uFA30-\uFA6A\uFA70-\uFAD9\U00020000-\U0002A6D6\U0002F800-\U0002FA1D]')
@@ -808,3 +810,29 @@ class ProblemClone(ProblemMixin, PermissionRequiredMixin, TitleMixin, SingleObje
             revisions.set_comment(_('Cloned problem from %s') % old_code)
 
         return HttpResponseRedirect(reverse('admin:judge_problem_change', args=(problem.id,)))
+
+
+class CheckerManagementView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+    template_name = 'problem/checker_management.html'
+    permission_required = 'judge.edit_own_problem'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['checkers'] = get_custom_checkers()
+        return context
+    
+    def post(self, request, *args, **kwargs):
+        if 'delete' in request.POST:
+            checker_name = request.POST.get('delete')
+            try:
+                response = requests.delete(f"{JUDGE_SERVER_URL}/{checker_name}")
+                if response.status_code == 200:
+                    return JsonResponse({'status': 'success', 'message': f'Checker {checker_name} deleted successfully.'})
+                else:
+                    return JsonResponse({'status': 'error', 'message': f'Failed to delete checker: {response.text}'})
+            except requests.exceptions.RequestException as e:
+                return JsonResponse({'status': 'error', 'message': f'Connection error: {str(e)}'})
+        
+        return self.get(request, *args, **kwargs)
+
+

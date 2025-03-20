@@ -2,33 +2,158 @@
 
 {% block media %}
     <style>
-        h4 {
-            padding-top: 1em;
+        .auth-flow-form {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 2em;
+            background:rgb(219, 219, 219);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
-        .social {
-            display: inline;
-            font-size: 2.3em;
-            float: none;
+        .auth-flow-form h2 {
+            text-align: center;
+            margin-bottom: 1em;
+            color: #333;
         }
 
-        .google-icon i {
-            color: #DD4B38;
+        .auth-flow-form table {
+            width: 100%;
+            margin-bottom: 1em;
         }
 
-        .facebook-icon i {
-            color: #133783;
+        .auth-flow-form th, .auth-flow-form td {
+            padding: 0.5em;
+            vertical-align: middle;
         }
-        .microsoft-icon i {
-            color:rgb(95, 145, 255);
+
+        .auth-flow-form th {
+            text-align: right;
+            padding-right: 1em;
+            color: #666;
         }
-        .github-icon i {
-            color: black;
+
+        .auth-flow-form td {
+            text-align: left;
+        }
+
+        .auth-flow-form input[type="text"],
+        .auth-flow-form input[type="password"] {
+            width: 100%;
+            padding: 0.5em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .auth-flow-form button {
+            width: 100%;
+            padding: 0.75em;
+            background: #007bff;
+            border: none;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .auth-flow-form button:hover {
+            background: #0056b3;
+        }
+
+        .auth-flow-form .social {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 1em;
+        }
+
+        .auth-flow-form .social a {
+            font-size: 2em;
+            color: #666;
+            transition: color 0.3s;
+        }
+
+        .auth-flow-form .social a:hover {
+            color: #333;
+        }
+
+        .auth-flow-form .social .google-icon i {
+            color: #dd4b39;
+        }
+
+        .auth-flow-form .social .facebook-icon i {
+            color: #3b5998;
+        }
+
+        .auth-flow-form .social .microsoft-icon i {
+            color: #00a1f1;
+        }
+
+        .auth-flow-form .social .github-icon i {
+            color: #333;
+        }
+
+        .auth-flow-form .forgot-password {
+            text-align: center;
+            margin-top: 1em;
+        }
+
+        .auth-flow-form .forgot-password a {
+            color: #007bff;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .auth-flow-form .forgot-password a:hover {
+            color: #0056b3;
+        }
+
+        @media (max-width: 480px) {
+            .auth-flow-form {
+                padding: 1em;
+            }
+
+            .auth-flow-form h2 {
+                font-size: 1.5em;
+            }
+
+            .auth-flow-form table {
+                margin-bottom: 0.5em;
+            }
+
+            .auth-flow-form th, .auth-flow-form td {
+                padding: 0.25em;
+            }
+
+            .auth-flow-form button {
+                padding: 0.5em;
+                font-size: 0.9em;
+            }
+
+            .auth-flow-form .social a {
+                font-size: 1.5em;
+            }
+        }
+
+        .dark-mode .auth-flow-form {
+            background: #333;
+            color: #fff;
+        }
+        .dark-mode .auth-flow-form input[type="text"],
+        .dark-mode .auth-flow-form input[type="password"] {
+            background: #444;
+            color: #fff;
+        }
+        .dark-mode .auth-flow-form button {
+            background: #555;
+            color: #fff;
         }
     </style>
 {% endblock %}
+
 {% block body %}
     <div class="auth-flow-form">
+        <h2>{{ _('Login') }}</h2>
         <form action="" method="post" class="form-area">
             {% csrf_token %}
             {% if form.errors %}
@@ -36,36 +161,34 @@
                     <p class="error">{{ _('Invalid username or password.') }}</p>
                 </div>
             {% endif %}
-            <table border="0" style="text-align:left">
+            <table border="0">
                 <tr>
-                    <th><i class="fa fa-user fa-fw"></i>
-                    </th>
-                    <td>{{ form.username }}
-                    </td>
+                    <th><i class="fa fa-user fa-fw"></i></th>
+                    <td>{{ form.username }}</td>
                 </tr>
                 <tr>
-                    <th><i class="fa fa-key fa-fw"></i>
-                    </th>
-                    <td>{{ form.password }}
-                    </td>
+                    <th><i class="fa fa-key fa-fw"></i></th>
+                    <td>{{ form.password }}</td>
                 </tr>
             </table>
-            <hr>
-            <button style="float:right;" type="submit">{{ _('Login!') }}</button>
+            <button type="submit">{{ _('Login!') }}</button>
             <input type="hidden" name="next" value="{{ next }}">
         </form>
-        <a href="{{ url('password_reset') }}">{{ _('Forgot your password?') }}</a>
+        <div class="forgot-password">
+            <a href="{{ url('password_reset') }}">{{ _('Forgot your password?') }}</a>
+        </div>
+        <br>
         {% if form.has_google_auth or form.has_facebook_auth or form.has_github_auth or form.has_microsoft_auth %}
             <h4>{{ _('Or log in with...') }}</h4>
-            <div>
+            <div class="social">
                 {% if form.has_google_auth %}
                     <a href="{{ url('social:begin', 'google-oauth2') }}" class="social google-icon">
                         <i class="fa fa-google-plus-square"></i>
                     </a>
                 {% endif %}
                 {% if form.has_microsoft_auth %}
-                    <a href="{{ url('social:begin', 'microsoft-oauth2', ) }}" class="social microsoft-icon">
-                        <i class="fa-brands fa-windows"></i> Đăng nhập bằng Microsoft
+                    <a href="{{ url('social:begin', 'azuread-oauth2') }}" class="social microsoft-icon">
+                        <i class="fa fa-windows"></i>
                     </a>
                 {% endif %}
                 {% if form.has_facebook_auth %}

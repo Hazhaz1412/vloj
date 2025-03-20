@@ -5,9 +5,7 @@ import zlib
 from itertools import chain
 
 from netaddr import IPGlob, IPSet
-
 from judge.utils.unicode import utf8text
-
 logger = logging.getLogger('judge.bridge')
 
 size_pack = struct.Struct('!I')

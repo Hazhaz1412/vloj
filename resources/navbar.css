@@ -1,0 +1,181 @@
+#nav-container {
+  background: #333;
+  height: 100%;
+  background-color: red;
+}
+
+nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 500;
+  background-color: #333;
+  color: #FFF;
+  transition: background-color 0.3s;
+}
+nav:hover {
+  background-color: #444;
+}
+nav ul {
+  margin: 0 0 0 -5px;
+  padding: 0 0 0 1%;
+  display: block;
+  background-color: red;
+}
+nav ul li {
+  display: inline-block;
+  color: #FFF;
+  text-transform: uppercase;
+  position: relative;
+  padding: 10px 15px;
+  transition: background-color 0.3s;
+}
+nav ul li:hover {
+  background-color: #555;
+}
+nav ul li.home-nav-element a {
+  padding: 0;
+  height: 44px;
+}
+nav ul li.home-nav-element a:hover {
+  border-bottom: none;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+nav ul li a, nav ul li button {
+  display: inline-block;
+  text-decoration: none;
+  vertical-align: middle;
+  color: #FFF;
+  padding: 13px 7px;
+  height: 18px;
+  transition: color 0.3s, background-color 0.3s;
+}
+nav ul li a:link, nav ul li button:link {
+  color: #FFF;
+}
+nav ul li a:hover, nav ul li button:hover {
+  color: #FFF;
+  background: rgba(255, 255, 255, 0.25);
+  margin: 0;
+}
+nav ul li a.active, nav ul li button.active {
+  color: #FFF;
+  background: #2980B9;
+}
+nav ul li a .nav-expand, nav ul li button .nav-expand {
+  display: none;
+}
+nav ul li ul {
+  padding: 0;
+  position: absolute;
+  left: 5px;
+  display: none;
+  color: #fff;
+  background: #444;
+  margin: 0 !important;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+}
+nav ul li ul li {
+  display: block;
+}
+nav ul li ul li a, nav ul li ul li button {
+  padding: 8px 20px 8px 8px !important;
+  font-size: 0.8em;
+  line-height: 18px;
+  display: block;
+  border-left: 4px solid #2980B9;
+  white-space: nowrap;
+}
+nav ul li:hover > ul, nav ul li:active > ul, nav ul li:focus > ul {
+  display: block !important;
+}
+nav .nav-divider {
+  width: 1px;
+  vertical-align: middle;
+  padding-left: 3px;
+  display: inline-block;
+  height: 32px;
+  margin-right: 1px;
+  border-right: 3px solid rgba(255, 255, 255, 0.15);
+}
+
+#navicon {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  #navigation {
+    height: 36px;
+  }
+  #navicon {
+    transition-duration: 0.25s;
+    display: block;
+    line-height: 26px;
+    font-size: 2em;
+    color: #FFF;
+    padding: 0 0.25em;
+    margin: 4px 0.25em;
+    white-space: nowrap;
+    float: left;
+  }
+  #navicon.hover {
+    color: #4db7fe;
+    text-shadow: 0 0 5px #2980B9;
+    transition-duration: 0.25s;
+  }
+  #nav-list {
+    display: none;
+    padding: 0;
+    margin: 0;
+    position: fixed;
+    top: 36px;
+    background: #333;
+    bottom: 0;
+    width: 8em;
+    left: 0;
+  }
+  #nav-list.show-list {
+    display: block;
+  }
+  #nav-list li {
+    display: block;
+  }
+  #nav-list li a {
+    display: block;
+  }
+  #nav-list li a .nav-expand {
+    float: right;
+    display: block;
+    height: inherit;
+    margin: -13px -7px;
+    padding: inherit;
+  }
+  #nav-list li ul {
+    left: 8em;
+    top: 0px;
+  }
+  #nav-list li ul.show-list {
+    display: block;
+  }
+  #nav-list li.home-nav-element {
+    display: none;
+  }
+  #user-links > ul > li > a > span {
+    padding: 6px 8px;
+  }
+}
+@media not all and (max-width: 760px) {
+  #nav-list li.home-menu-item {
+    display: none;
+  }
+  #nav-list li:not(:hover) > ul {
+    display: none !important;
+  }
+  #nav-list li ul {
+    left: 0 !important;
+  }
+}
+
+/*# sourceMappingURL=navbar.css.map */
