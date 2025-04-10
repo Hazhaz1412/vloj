@@ -28,8 +28,9 @@ from judge.utils.lazy import memo_lazy
 from judge.utils.problems import get_result_data, user_completed_ids, user_editable_ids, user_tester_ids
 from judge.utils.raw_sql import join_sql_subquery, use_straight_join
 from judge.utils.views import DiggPaginatorMixin, TitleMixin, generic_message
-
-
+from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist, PermissionDenied
+from django.core.exceptions import PermissionDenied
+from django.utils.translation import gettext as _
 def submission_related(queryset):
     return queryset.select_related('user__user', 'problem', 'language') \
         .only('id', 'user__user__username', 'user__display_rank', 'user__rating', 'problem__name',
@@ -420,6 +421,11 @@ class AllUserSubmissions(ConditionalUserTabMixin, UserMixin, SubmissionsListBase
         return context
 
 
+def is_user_in_contest(request):
+    if not request.user.is_authenticated or not hasattr(request.user, 'profile'):
+        return False
+    return request.user.profile.current_contest is not None
+
 class ProblemSubmissionsBase(SubmissionsListBase):
     show_problem = False
     dynamic_update = True
@@ -442,6 +448,19 @@ class ProblemSubmissionsBase(SubmissionsListBase):
     def access_check_contest(self, request):
         if self.in_contest and not self.contest.can_see_own_scoreboard(request.user):
             raise Http404()
+            
+        # Nếu user đang ở trong một cuộc thi khác, chặn họ xem submissions của contest khác
+        if request.user.is_authenticated and hasattr(request.user, 'profile') and \
+           request.user.profile.current_contest and \
+           request.user.profile.current_contest.contest_id != getattr(self, 'contest', {}).id:
+            raise PermissionDenied(_("You cannot view submissions for other contests while in a contest."))
+        
+        # Nếu bài này không thuộc cuộc thi hiện tại, chặn truy cập
+        if request.user.is_authenticated and hasattr(request.user, 'profile') and \
+           request.user.profile.current_contest:
+            contest = request.user.profile.current_contest.contest
+            if not contest.contest_problems.filter(problem_id=self.problem.id).exists():
+                raise PermissionDenied(_("You cannot view submissions for problems outside your current contest."))
 
     def access_check(self, request):
         # FIXME: This should be rolled into the `is_accessible_by` check when implementing #1509

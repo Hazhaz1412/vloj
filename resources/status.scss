@@ -42,3 +42,18 @@
     background: white;
     color: black;
 }
+/* Thêm vào cuối file */
+.ai-flagged-submission {
+    background-color: #fff0f0 !important;
+    border-left: 4px solid #ff5555 !important;
+}
+
+.ai-flagged-badge {
+    display: inline-block;
+    background-color: #ff5555;
+    color: white;
+    font-size: 0.8em;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 5px;
+}

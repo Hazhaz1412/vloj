@@ -60,6 +60,12 @@ def _find_contest(request, key, private_check=True):
     return contest, True
 
 
+def is_user_in_contest(request):
+    if not request.user.is_authenticated or not hasattr(request, 'profile'):
+        return False
+    return request.profile.current_contest is not None
+
+
 class ContestListMixin(object):
     def get_queryset(self):
         return Contest.get_visible_contests(self.request.user)
@@ -144,6 +150,30 @@ class ContestList(QueryStringSortMixin, DiggPaginatorMixin, TitleMixin, ContestL
         context['page_suffix'] = '#past-contests'
         context.update(self.get_sort_context())
         context.update(self.get_sort_paginate_context())
+        
+        # If user is in a contest, only show that contest
+        if is_user_in_contest(self.request):
+            current_contest = self.request.profile.current_contest.contest
+            current_contest_id = current_contest.id
+            
+            # Keep the current contest in active_participations
+            if not any(p.contest.id == current_contest_id for p in active):
+                # If the current contest isn't already in active, we need to add it
+                participation = self.request.profile.current_contest
+                active = [participation]
+            else:
+                active = [p for p in active if p.contest.id == current_contest_id]
+            
+            # Keep only the current contest
+            context['active_participations'] = active
+            context['current_contests'] = [] 
+            context['future_contests'] = []
+            # Don't filter past_contests - they don't affect your current contest
+            context['past_contests'] = []
+            
+            # Add message to inform user
+            context['in_contest_message'] = _("You are currently in a contest. Other contests are hidden.")
+        
         return context
 
 

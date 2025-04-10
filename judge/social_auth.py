@@ -48,7 +48,31 @@ def slugify_username(username, renotword=re.compile(r'[^\w]')):
 
 
 def verify_email(backend, details, *args, **kwargs):
-    if not details['email']:
+    """Xử lý email từ OAuth providers"""
+    print(f"Backend: {backend.name}, Details: {details}")
+    
+    # Xử lý đặc biệt cho Azure AD
+    if backend.name == 'azuread-tenant-oauth2':
+        response = kwargs.get('response', {})
+        print(f"Azure response: {response}")
+        
+        # Ưu tiên lấy email từ các trường khác nhau
+        if not details.get('email'):
+            email = None
+            for field in ['userPrincipalName', 'mail', 'email']:
+                if response.get(field):
+                    email = response.get(field)
+                    break
+            
+            if email:
+                details['email'] = email
+                return
+    
+    # Cho phép đăng nhập mà không cần email (tùy chọn)
+    # if backend.name == 'azuread-tenant-oauth2':
+    #    return
+    
+    if not details.get('email'):
         raise InvalidEmail(backend)
 
 

@@ -180,8 +180,8 @@ class CustomAuthenticationForm(AuthenticationForm):
         self.has_google_auth = self._has_social_auth('GOOGLE_OAUTH2')
         self.has_facebook_auth = self._has_social_auth('FACEBOOK')
         self.has_github_auth = self._has_social_auth('GITHUB_SECURE')
-        self.has_microsoft_auth = self._has_social_auth('AZUREAD_OAUTH2')
-
+        self.has_microsoft_auth = self._has_social_auth('AZUREAD_TENANT_OAUTH2')
+        
     def _has_social_auth(self, key):
         return bool(
             getattr(settings, f'SOCIAL_AUTH_{key}_KEY', None) and

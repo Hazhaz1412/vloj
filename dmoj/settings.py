@@ -28,11 +28,27 @@ SECRET_KEY = '5*9f5q57mqmlz2#f$x1h76&jxy#yortjl1v+l*6hd18$d*yx#0'
 DEBUG = True
 
 ALLOWED_HOSTS = []
-SITE_URL = 'https://b2a9-2405-4803-db3e-b1e0-4c1a-bc46-76da-6bed.ngrok-free.app/'
+SITE_URL = 'https://209a-2405-4803-db46-66d0-9814-cbf5-5498-2489.ngrok-free.app/'
 SITE_ID = 1
-SITE_NAME = 'VLOJ'
-SITE_LONG_NAME = 'VLOJ: Modern Online Judge'
-SITE_ADMIN_EMAIL = ''
+SITE_ADMIN_EMAIL = '' 
+SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_KEY = 'b03abad6-0c21-45a1-bc46-450a32ec04e4'
+SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_SECRET = '1f615364-93de-4f57-a77e-d688c5948075'
+SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_TENANT_ID = 'aef0d969-221b-4c15-bcb9-c07565c45cac'
+SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_REDIRECT_URI = 'https://cfe3-2405-4803-db46-66d0-88a9-a157-7bf2-4e3d.ngrok-free.app/accounts/auth/complete/azuread-tenant-oauth2/'
+
+SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_WHITELISTED_DOMAINS = ['*']  # Cho phép tất cả domain
+SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_AUTH_EXTRA_ARGUMENTS = {'prompt': 'select_account'}
+SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_IGNORE_DEFAULT_SCOPE = True
+
+
+# Đặt SECURE_PROXY_SSL_HEADER để Django hiểu rằng kết nối qua HTTPS
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+# Force sử dụng HTTPS cho social-auth
+SOCIAL_AUTH_REDIRECT_IS_HTTPS = True
+
+SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_WHITELISTED_DOMAINS = None
+
+SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_SCOPE = ['openid', 'email', 'profile', 'User.Read']
 
 DMOJ_REQUIRE_STAFF_2FA = True
 # Display warnings that admins will not perform 2FA recovery.
@@ -41,7 +57,7 @@ DMOJ_2FA_HARDCORE = False
 # Set to 1 to use HTTPS if request was made to https://
 # Set to 2 to always use HTTPS for links
 # Set to 0 to always use HTTP for links
-DMOJ_SSL = 0
+DMOJ_SSL = 2
 
 # Refer to https://dmoj.ca/post/103-point-system-rework
 DMOJ_PP_STEP = 0.95
@@ -177,7 +193,7 @@ else:
 
     WPADMIN = {
         'admin': {
-            'title': 'DMOJ Admin',
+            'title': 'VLOJ Admin',
             'menu': {
                 'top': 'wpadmin.menu.menus.BasicTopMenu',
                 'left': 'wpadmin.menu.custom.CustomModelLeftMenuWithDashboard',

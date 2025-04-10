@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.contrib.sitemaps.views import sitemap
-from django.http import Http404, HttpResponsePermanentRedirect
+from django.http import Http404, HttpResponsePermanentRedirect, JsonResponse
 from django.templatetags.static import static
 from django.urls import include, path, re_path, reverse
 from django.utils.functional import lazy
@@ -31,7 +31,7 @@ from django.urls import include, path, re_path, reverse
 from django.utils.functional import lazy
 from django.views.generic import RedirectView
 from judge.views.checker_views import refresh_checkers, proxy_delete_checker, proxy_upload_checker
-
+from django.core.exceptions import PermissionDenied
 
 admin.autodiscover()
 
@@ -101,7 +101,23 @@ def paged_list_view(view, name):
         path('<int:page>', view.as_view(), name=name),
     ])
 
-
+def access_check_contest(self, request):
+    if self.in_contest:
+        if not self.contest.can_see_own_scoreboard(request.user):
+            raise Http404()
+        
+        # Nếu user đang ở trong một cuộc thi khác, chặn họ xem submissions của contest khác
+        if request.user.is_authenticated and hasattr(request.user, 'profile') and \
+           request.user.profile.current_contest and \
+           request.user.profile.current_contest.contest_id != self.contest.id:
+            raise PermissionDenied(_("You cannot view submissions for other contests while in a contest."))
+        
+        # Nếu bài này không thuộc cuộc thi hiện tại, chặn truy cập
+        if request.user.is_authenticated and hasattr(request.user, 'profile') and \
+           request.user.profile.current_contest:
+            contest = request.user.profile.current_contest.contest
+            if not contest.contest_problems.filter(problem_id=self.problem.id).exists():
+                raise PermissionDenied(_("You cannot view submissions for problems outside your current contest."))
 urlpatterns = [
     path('', blog.PostList.as_view(template_name='home.html', title=_('Home')), kwargs={'page': 1}, name='home'),
     path('500/', exception),
@@ -109,6 +125,7 @@ urlpatterns = [
     path('i18n/', include('django.conf.urls.i18n')),
     path('accounts/', include(register_patterns)),
     path('', include('social_django.urls')),
+    path('oauth/', include('social_django.urls', namespace='social')),
     path('about/', views.about, name='about'),
     path('problems/', problem.ProblemList.as_view(), name='problem_list'),
     path('problems/random/', problem.RandomProblem.as_view(), name='problem_random'),
@@ -379,6 +396,13 @@ urlpatterns = [
         path('failure', tasks.demo_failure),
         path('progress', tasks.demo_progress),
     ])),
+
+    path('debug/oauth/', lambda request: JsonResponse({
+        'session': dict(request.session),
+        'GET': dict(request.GET),
+        'user': str(request.user),
+        'auth': request.user.is_authenticated,
+    }), name='debug_oauth'),
 ]
 
 if settings.DEBUG:

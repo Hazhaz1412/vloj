@@ -143,6 +143,9 @@
 
 {% block body %}
     <div class="content-description">
+        {% if in_contest_message %}
+        <div class="alert alert-info">{{ in_contest_message }}</div>
+        {% endif %}
         {% if active_participations %}
             <h4>{{ _('Active contests') }}</h4>
             <table class="contest-list table striped">

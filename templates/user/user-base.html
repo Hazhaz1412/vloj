@@ -11,6 +11,35 @@
 {% block body %}
     <div class="user-info-page">
         <div class="user-sidebar">
+            {% if ratings %}
+                <!-- Hiển thị rank người dùng - đã cải thiện -->
+                <div class="user-rank-display" style="text-align: center; margin-bottom: 15px;">
+                    <span class="{{ 'rate-newbie' if rating.rating < 1200 else
+                                  'rate-pupil' if rating.rating < 1400 else
+                                  'rate-specialist' if rating.rating < 1600 else
+                                  'rate-expert' if rating.rating < 1900 else
+                                  'rate-candidate-master' if rating.rating < 2200 else
+                                  'rate-master' if rating.rating < 2300 else
+                                  'rate-international-master' if rating.rating < 2400 else
+                                  'rate-grandmaster' if rating.rating < 2600 else
+                                  'rate-international-grandmaster' if rating.rating < 2900 else
+                                  'rate-legendary-grandmaster' }}"
+                          style="font-weight: bold; font-size: 1.2em; padding: 5px 15px; border-radius: 10px; display: inline-block; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                        {% if rating.rating < 1200 %}Người mới 
+                        {% elif rating.rating < 1400 %}Học sinh
+                        {% elif rating.rating < 1600 %}Thành thạo
+                        {% elif rating.rating < 1900 %}Chuyên gia
+                        {% elif rating.rating < 2200 %}Thạc sĩ dự bị
+                        {% elif rating.rating < 2300 %}Thạc sĩ
+                        {% elif rating.rating < 2400 %}Thạc sĩ quốc tế
+                        {% elif rating.rating < 2600 %}Đại sư
+                        {% elif rating.rating < 2900 %}Đại sư quốc tế
+                        {% else %}Huyền thoại
+                        {% endif %}
+                    </span>
+                </div>
+            {% endif %}
+            
             <img src="{{ gravatar(user, 135) }}" class="user-gravatar">
             <br>
 
@@ -52,6 +81,7 @@
                 <div><b class="semibold">{{ _('Rating:') }}</b> {{ rating_number(rating) }}</div>
                 <div><b class="semibold">{{ _('Min. rating:') }}</b> {{ rating_number(min_rating) }}</div>
                 <div><b class="semibold">{{ _('Max rating:') }}</b> {{ rating_number(max_rating) }}</div>
+                
             {% endif %}
         </div>
         <div class="user-content">{% block user_content %}{% endblock %}</div>

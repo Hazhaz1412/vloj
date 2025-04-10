@@ -1,4 +1,10 @@
 {% set can_view, can_edit = submission_layout(submission, profile_id, request.user, completed_problem_ids, editable_problem_ids, tester_problem_ids) %}
+{% if submission.source and "AI-GENERATED-CODE" in submission.source.source %}
+<tr id="sub-{{ submission.id }}" class="ai-flagged-submission">
+{% else %}
+<tr id="sub-{{ submission.id }}">
+{% endif %}
+
 <div class="sub-result {{ submission.result_class }}">
     <div class="score">
         {%- if submission.is_graded -%}
@@ -15,6 +21,9 @@
     <div class="state">
         <span title="{{ submission.long_status }}" class="status">{{ submission.short_status }}</span> |
         <span class="language">{{ submission.language.short_display_name }}</span>
+        {% if submission.source and "AI-GENERATED-CODE" in submission.source.source and submission.short_status == "AC" %}
+        <span class="ai-flagged-badge">AI</span>
+        {% endif %}
     </div>
 </div>
 
@@ -44,7 +53,7 @@
                 {{ _('Case #%(case)s', case=submission.current_testcase) }}
             {%- else -%}
                 ...
-            {%- endif -%}
+            {%- endif %}
         </div>
     {% endif %}
 

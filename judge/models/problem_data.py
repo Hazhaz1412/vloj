@@ -30,6 +30,7 @@ STATIC_CHECKERS = (
     ('sorted', _('Sorted')),
     ('identical', _('Byte identical')),
     ('linecount', _('Line-by-line')),
+    ('easy', _('Easy')),
 )
 CHECKERS = get_custom_checkers() + list(STATIC_CHECKERS)
 
