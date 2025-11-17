@@ -17,7 +17,7 @@
 
 As a fork of DMOJ, VLOJ is a modern open-source online judge and contest platform system.
 
-See it live at [vloj.vlu.edu.vn](https://vloj.vlu.edu.vn/)!
+See it live at [vloj.me](https://vloj.me)!
 
 ## Features
 
